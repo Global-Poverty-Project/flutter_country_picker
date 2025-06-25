@@ -48,6 +48,9 @@ class CountryListView extends StatefulWidget {
   /// Custom builder function for flag widget
   final CustomFlagBuilder? customFlagBuilder;
 
+  /// An optional argument to allow searching by symbols
+  final bool searchBySymbolsAllowed;
+
   const CountryListView({
     Key? key,
     required this.onSelect,
@@ -59,6 +62,7 @@ class CountryListView extends StatefulWidget {
     this.searchAutofocus = false,
     this.showWorldWide = false,
     this.showSearch = true,
+    this.searchBySymbolsAllowed = true,
     this.customFlagBuilder,
   })  : assert(
           exclude == null || countryFilter == null,
@@ -166,7 +170,7 @@ class _CountryListViewState extends State<CountryListView> {
                   ),
                 ),
             onChanged: (value) {
-              _filterSearchResults(value);
+              _filterSearchResults(value, widget.searchBySymbolsAllowed);
               _checkSearchText(value);
             },
           ),
@@ -266,20 +270,78 @@ class _CountryListViewState extends State<CountryListView> {
         ),
       );
 
-  void _filterSearchResults(String query) {
+  void _filterSearchResults(String query, bool searchBySymbolsAllowed) {
     List<Country> _searchResult = <Country>[];
+
     final CountryLocalizations? localizations =
         CountryLocalizations.of(context);
+    final lowerQuery = query.toLowerCase();
 
     if (query.isEmpty) {
       _searchResult.addAll(_countryList);
     } else {
       _searchResult = _countryList
-          .where((c) => c.startsWith(query, localizations))
-          .toList();
+            .where(
+              (c) => matchesFromCountryCodes(
+                  c, lowerQuery, localizations, countryCodes, searchBySymbolsAllowed),
+            )
+            .toList();
     }
 
     setState(() => _filteredList = _searchResult);
+  }
+
+  bool matchesFromCountryCodes(
+    Country country,
+    String query,
+    CountryLocalizations? localizations,
+    List<Map<String, dynamic>> countryCodes, [
+    bool searchBySymbolsAllowed = true,
+  ]) {
+    final lowerQuery = query.toLowerCase();
+
+    if (searchBySymbolsAllowed) {
+      final localizedName =
+          localizations?.countryName(countryCode: country.countryCode) ?? '';
+      if (localizedName.toLowerCase().contains(lowerQuery)) return true;
+    } else {
+      // Ignore short random characters
+      if (lowerQuery.trim().isEmpty) return false;
+
+      // Get localized name
+      final localizedName =
+          localizations?.countryName(countryCode: country.countryCode) ?? '';
+      final name = localizedName.toLowerCase();
+
+      // Match full name exactly
+      if (name == lowerQuery) return true;
+    }
+
+    // Match against countryCodes info
+    final match = countryCodes.firstWhere(
+      (item) =>
+          item['iso2_cc']?.toString().toLowerCase() ==
+          country.countryCode.toLowerCase(),
+      orElse: () => {},
+    );
+
+    final officialName = (match['name'] ?? '').toString().toLowerCase();
+    final iso2 = (match['iso2_cc'] ?? '').toString().toLowerCase();
+    final aliases = (match['iso_aliases'] ?? []) as List<dynamic>;
+
+    // Match official full name
+    if (officialName == lowerQuery) return true;
+
+    // Match words from official name
+    if (officialName.split(RegExp(r'\s+')).contains(lowerQuery)) return true;
+
+    // Match ISO code or known alias exactly
+    if (iso2 == lowerQuery) return true;
+    if (aliases.any((alias) => alias.toString().toLowerCase() == lowerQuery)) {
+      return true;
+    }
+
+    return false;
   }
 
   TextStyle get _defaultTextStyle => const TextStyle(fontSize: 16);

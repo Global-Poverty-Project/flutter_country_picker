@@ -3032,6 +3032,7 @@ final List<Map<String, dynamic>> countryCodes = [
   {
     "e164_cc": "44",
     "iso2_cc": "GB",
+    "iso_aliases": ["UK", "GB"],
     "e164_sc": 0,
     "geographic": true,
     "level": 1,
@@ -3045,14 +3046,15 @@ final List<Map<String, dynamic>> countryCodes = [
   {
     "e164_cc": "1",
     "iso2_cc": "US",
+    "iso_aliases": ["USA", "US"],
     "e164_sc": 0,
     "geographic": true,
     "level": 1,
-    "name": "United States",
+    "name": "United States of America",
     "example": "2012345678",
-    "display_name": "United States (US) [+1]",
+    "display_name": "United States of America (US) [+1]",
     "full_example_with_plus_sign": "+12012345678",
-    "display_name_no_e164_cc": "United States (US)",
+    "display_name_no_e164_cc": "United States of America (US)",
     "e164_key": "1-US-0",
   },
   {

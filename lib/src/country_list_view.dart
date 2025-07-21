@@ -48,8 +48,8 @@ class CountryListView extends StatefulWidget {
   /// Custom builder function for flag widget
   final CustomFlagBuilder? customFlagBuilder;
 
-  /// An optional argument to allow searching by symbols
-  final bool searchBySymbolsAllowed;
+  /// An optional argument to allow partial name search
+  final bool allowPartialNameSearch;
 
   const CountryListView({
     Key? key,
@@ -62,7 +62,7 @@ class CountryListView extends StatefulWidget {
     this.searchAutofocus = false,
     this.showWorldWide = false,
     this.showSearch = true,
-    this.searchBySymbolsAllowed = true,
+    this.allowPartialNameSearch = true,
     this.customFlagBuilder,
   })  : assert(
           exclude == null || countryFilter == null,
@@ -170,7 +170,7 @@ class _CountryListViewState extends State<CountryListView> {
                   ),
                 ),
             onChanged: (value) {
-              _filterSearchResults(value, widget.searchBySymbolsAllowed);
+              _filterSearchResults(value, widget.allowPartialNameSearch);
               _checkSearchText(value);
             },
           ),
@@ -270,7 +270,7 @@ class _CountryListViewState extends State<CountryListView> {
         ),
       );
 
-  void _filterSearchResults(String query, bool searchBySymbolsAllowed) {
+  void _filterSearchResults(String query, bool allowPartialNameSearch) {
     List<Country> _searchResult = <Country>[];
 
     final CountryLocalizations? localizations =
@@ -282,8 +282,8 @@ class _CountryListViewState extends State<CountryListView> {
     } else {
       _searchResult = _countryList
             .where(
-              (c) => matchesFromCountryCodes(
-                  c, lowerQuery, localizations, countryCodes, searchBySymbolsAllowed),
+              (c) => _countryMatchesQuery(
+                  c, lowerQuery, localizations, countryCodes, allowPartialNameSearch),
             )
             .toList();
     }
@@ -291,16 +291,16 @@ class _CountryListViewState extends State<CountryListView> {
     setState(() => _filteredList = _searchResult);
   }
 
-  bool matchesFromCountryCodes(
+  bool _countryMatchesQuery(
     Country country,
     String query,
     CountryLocalizations? localizations,
     List<Map<String, dynamic>> countryCodes, [
-    bool searchBySymbolsAllowed = true,
+    bool allowPartialNameSearch = true,
   ]) {
     final lowerQuery = query.toLowerCase();
 
-    if (searchBySymbolsAllowed) {
+    if (allowPartialNameSearch) {
       final localizedName =
           localizations?.countryName(countryCode: country.countryCode) ?? '';
       if (localizedName.toLowerCase().contains(lowerQuery)) return true;

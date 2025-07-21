@@ -68,7 +68,7 @@ void showCountryPicker({
   bool useRootNavigator = false,
   bool moveAlongWithKeyboard = false,
   Widget header = const SizedBox.shrink(),
-  bool searchBySymbolsAllowed = true,
+  bool allowPartialNameSearch = true,
   String? barrierLabel,
 }) {
   assert(
@@ -92,7 +92,7 @@ void showCountryPicker({
     useRootNavigator: useRootNavigator,
     moveAlongWithKeyboard: moveAlongWithKeyboard,
     header: header,
-    searchBySymbolsAllowed: searchBySymbolsAllowed,
+    allowPartialNameSearch: allowPartialNameSearch,
     barrierLabel: barrierLabel,
   );
 }

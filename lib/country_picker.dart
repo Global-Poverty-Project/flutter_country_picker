@@ -68,6 +68,8 @@ void showCountryPicker({
   bool useRootNavigator = false,
   bool moveAlongWithKeyboard = false,
   Widget header = const SizedBox.shrink(),
+  bool searchBySymbolsAllowed = true,
+  String? barrierLabel,
 }) {
   assert(
     exclude == null || countryFilter == null,
@@ -90,5 +92,7 @@ void showCountryPicker({
     useRootNavigator: useRootNavigator,
     moveAlongWithKeyboard: moveAlongWithKeyboard,
     header: header,
+    searchBySymbolsAllowed: searchBySymbolsAllowed,
+    barrierLabel: barrierLabel,
   );
 }

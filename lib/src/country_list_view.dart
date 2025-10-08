@@ -299,11 +299,16 @@ class _CountryListViewState extends State<CountryListView> {
     bool allowPartialNameSearch = true,
   ]) {
     final lowerQuery = query.toLowerCase();
+    final normalizedQuery = Utils.normalizeText(lowerQuery);
 
     if (allowPartialNameSearch) {
       final localizedName =
           localizations?.countryName(countryCode: country.countryCode) ?? '';
+      final normalizedLocalizedName = Utils.normalizeText(localizedName.toLowerCase());
+      
+      // Check both original and normalized versions
       if (localizedName.toLowerCase().contains(lowerQuery)) return true;
+      if (normalizedLocalizedName.contains(normalizedQuery)) return true;
     } else {
       // Ignore short random characters
       if (lowerQuery.trim().isEmpty) return false;
@@ -312,9 +317,11 @@ class _CountryListViewState extends State<CountryListView> {
       final localizedName =
           localizations?.countryName(countryCode: country.countryCode) ?? '';
       final name = localizedName.toLowerCase();
+      final normalizedName = Utils.normalizeText(name);
 
-      // Match full name exactly
+      // Match full name exactly (both original and normalized)
       if (name == lowerQuery) return true;
+      if (normalizedName == normalizedQuery) return true;
     }
 
     // Match against countryCodes info
@@ -326,14 +333,17 @@ class _CountryListViewState extends State<CountryListView> {
     );
 
     final officialName = (match['name'] ?? '').toString().toLowerCase();
+    final normalizedOfficialName = Utils.normalizeText(officialName);
     final iso2 = (match['iso2_cc'] ?? '').toString().toLowerCase();
     final aliases = (match['iso_aliases'] ?? []) as List<dynamic>;
 
-    // Match official full name
+    // Match official full name (both original and normalized)
     if (officialName == lowerQuery) return true;
+    if (normalizedOfficialName == normalizedQuery) return true;
 
-    // Match words from official name
+    // Match words from official name (both original and normalized)
     if (officialName.split(RegExp(r'\s+')).contains(lowerQuery)) return true;
+    if (normalizedOfficialName.split(RegExp(r'\s+')).contains(normalizedQuery)) return true;
 
     // Match ISO code or known alias exactly
     if (iso2 == lowerQuery) return true;

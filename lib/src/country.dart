@@ -125,14 +125,23 @@ class Country {
     if (query.startsWith("+")) {
       _query = query.replaceAll("+", "").trim();
     }
-    return phoneCode.startsWith(_query.toLowerCase()) ||
-        name.toLowerCase().startsWith(_query.toLowerCase()) ||
-        countryCode.toLowerCase().startsWith(_query.toLowerCase()) ||
+    final lowerQuery = _query.toLowerCase();
+    final normalizedQuery = Utils.normalizeText(lowerQuery);
+    
+    return phoneCode.startsWith(lowerQuery) ||
+        name.toLowerCase().startsWith(lowerQuery) ||
+        Utils.normalizeText(name.toLowerCase()).startsWith(normalizedQuery) ||
+        countryCode.toLowerCase().startsWith(lowerQuery) ||
         (localizations
                 ?.countryName(countryCode: countryCode)
                 ?.toLowerCase()
-                .startsWith(_query.toLowerCase()) ??
-            false);
+                .startsWith(lowerQuery) ??
+            false) ||
+        (() {
+          final localizedName = localizations?.countryName(countryCode: countryCode);
+          return localizedName != null && 
+                 Utils.normalizeText(localizedName.toLowerCase()).startsWith(normalizedQuery);
+        })();
   }
 
   bool get iswWorldWide => countryCode == Country.worldWide.countryCode;

@@ -37,6 +37,7 @@ import 'res/strings/sk.dart';
 import 'res/strings/tr.dart';
 import 'res/strings/tw.dart';
 import 'res/strings/uk.dart';
+import 'utils.dart';
 
 /// Used to parse simple string representations of countries, commonly used in
 /// databases and other forms of storage, to a Country object.
@@ -207,9 +208,13 @@ class CountryParser {
     final Map<String, String> translation = _getTranslation(locale);
 
     String? code;
+    final normalizedName = Utils.normalizeText(name.toLowerCase());
 
     translation.forEach((key, value) {
-      if (value.toLowerCase() == name) code = key;
+      final normalizedValue = Utils.normalizeText(value.toLowerCase());
+      if (value.toLowerCase() == name || normalizedValue == normalizedName) {
+        code = key;
+      }
     });
 
     return code;

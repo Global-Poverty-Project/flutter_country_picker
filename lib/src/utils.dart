@@ -1,4 +1,4 @@
-import 'package:string_normalizer/string_normalizer.dart';
+import 'package:diacritic/diacritic.dart';
 
 class Utils {
   static String countryCodeToEmoji(String countryCode) {
@@ -21,6 +21,6 @@ class Utils {
   /// - "São Tomé" becomes "Sao Tome"
   /// - "Côte d'Ivoire" becomes "Cote d'Ivoire"
   static String normalizeText(String text) {
-    return StringNormalizer.normalize(text);
+    return removeDiacritics(text);
   }
 }

@@ -13,7 +13,7 @@ dependencies:
   collection: ^1.19.1
   flutter:
     sdk: flutter
-  string_normalizer: ^0.3.5
+  diacritic: ^0.1.6
 
 dev_dependencies:
   flutter_test:

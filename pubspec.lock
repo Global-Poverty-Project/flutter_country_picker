@@ -41,6 +41,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.19.1"
+  diacritic:
+    dependency: "direct main"
+    description:
+      name: diacritic
+      sha256: "12981945ec38931748836cd76f2b38773118d0baef3c68404bdfde9566147876"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.1.6"
   fake_async:
     dependency: transitive
     description:
@@ -152,14 +160,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.4"
-  string_normalizer:
-    dependency: "direct main"
-    description:
-      name: string_normalizer
-      sha256: b126264f375f57d59d9a8b759e3c34ec7d0df321a2ef21f9709a847b5f0fa0db
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.3.5"
   string_scanner:
     dependency: transitive
     description:

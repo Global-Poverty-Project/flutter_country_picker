@@ -120,6 +120,11 @@ class Country {
     return data;
   }
 
+  /// Former English names that users still search for after a rename.
+  static const Map<String, List<String>> _formerNames = {
+    'TR': ['Turkey'],
+  };
+
   bool startsWith(String query, CountryLocalizations? localizations) {
     String _query = query;
     if (query.startsWith("+")) {
@@ -127,10 +132,15 @@ class Country {
     }
     final lowerQuery = _query.toLowerCase();
     final normalizedQuery = Utils.normalizeText(lowerQuery);
-    
+
     return phoneCode.startsWith(lowerQuery) ||
         name.toLowerCase().startsWith(lowerQuery) ||
         Utils.normalizeText(name.toLowerCase()).startsWith(normalizedQuery) ||
+        (_formerNames[countryCode]?.any(
+              (formerName) => Utils.normalizeText(formerName.toLowerCase())
+                  .startsWith(normalizedQuery),
+            ) ??
+            false) ||
         countryCode.toLowerCase().startsWith(lowerQuery) ||
         (localizations
                 ?.countryName(countryCode: countryCode)

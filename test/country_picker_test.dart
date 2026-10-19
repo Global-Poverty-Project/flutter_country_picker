@@ -49,6 +49,16 @@ void main() {
       expect(english.countryName(countryCode: 'TR'), 'Türkiye');
     });
 
+    test('uses its official name in Hindi and Nepali', () {
+      for (final languageCode in ['hi', 'ne']) {
+        expect(
+          CountryLocalizations(Locale(languageCode))
+              .countryName(countryCode: 'TR'),
+          'तुर्किये',
+        );
+      }
+    });
+
     test('is found when searching by its current or former name', () {
       expect(turkiye.startsWith('turkiye', english), isTrue);
       expect(turkiye.startsWith('Türk', english), isTrue);

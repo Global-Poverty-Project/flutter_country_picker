@@ -224,7 +224,7 @@ Map<String, String> en = {
   "TO": "Tonga",
   "TT": "Trinidad/Tobago",
   "TN": "Tunisia",
-  "TR": "Turkey",
+  "TR": "Türkiye",
   "TM": "Turkmenistan",
   "TC": "Turks and Caicos Islands",
   "TV": "Tuvalu",

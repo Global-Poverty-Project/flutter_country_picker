@@ -86,7 +86,7 @@ Map<String, String> ht = {
   "GI": "Jibraltar",
   "GR": "Grès",
   "GL": "Gwoland",
-  "GD": "Gwadloup",
+  "GD": "Grenad",
   "GP": "Gwadloup",
   "GU": "Gwam",
   "GT": "Gwatmala",

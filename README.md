@@ -111,6 +111,8 @@ MaterialApp(
 * `listPadding`: the padding of the list.
 * `initialCountryCode`: the country (iso2) the list opens on, centered.
 
+`matchPhoneCode` (on `CountryListView` and `showCountryPicker`, default `false`) makes a search of digits, with or without a leading "+", also find the countries whose phone code starts with them: "44" or "+44" finds the United Kingdom.
+
 ```Dart
 showModalBottomSheet(
   context: context,
@@ -120,6 +122,7 @@ showModalBottomSheet(
     child: CountryListView(
       onSelect: (country) => print(country.name),
       initialCountryCode: 'GB',
+      matchPhoneCode: true,
       searchBuilder: (context, controller, onChanged) => TextField(
         controller: controller,
         onChanged: onChanged,

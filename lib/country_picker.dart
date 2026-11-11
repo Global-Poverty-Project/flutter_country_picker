@@ -55,6 +55,10 @@ export 'src/country_service.dart';
 /// along with keyboard when textfield is focused. It could be useful when
 /// bottomSheet height is smaller than half of the screen. Otherwise it
 /// shouldn't be set. It has a default value of false.
+///
+/// An optional [matchPhoneCode] argument makes a search of digits, with or
+/// without a leading "+", also find the countries whose phone code starts
+/// with them. It has a default value of false.
 
 void showCountryPicker({
   required BuildContext context,
@@ -75,6 +79,7 @@ void showCountryPicker({
   Widget header = const SizedBox.shrink(),
   bool allowPartialNameSearch = true,
   String? barrierLabel,
+  bool matchPhoneCode = false,
 }) {
   assert(
     exclude == null || countryFilter == null,
@@ -99,5 +104,6 @@ void showCountryPicker({
     header: header,
     allowPartialNameSearch: allowPartialNameSearch,
     barrierLabel: barrierLabel,
+    matchPhoneCode: matchPhoneCode,
   );
 }

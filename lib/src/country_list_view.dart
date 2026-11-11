@@ -74,6 +74,10 @@ class CountryListView extends StatefulWidget {
   /// An optional argument to allow partial name search
   final bool allowPartialNameSearch;
 
+  /// Makes a search of digits, with or without a leading "+", also find the
+  /// countries whose phone code starts with them.
+  final bool matchPhoneCode;
+
   /// Builds the search field in place of the default one. It takes the place
   /// of the default [TextField] only, so [showSearch] still hides it.
   final CountrySearchBuilder? searchBuilder;
@@ -107,6 +111,7 @@ class CountryListView extends StatefulWidget {
     this.showSearch = true,
     this.allowPartialNameSearch = true,
     this.customFlagBuilder,
+    this.matchPhoneCode = false,
     this.searchBuilder,
     this.itemBuilder,
     this.emptyBuilder,
@@ -408,13 +413,22 @@ class _CountryListViewState extends State<CountryListView> {
     } else {
       _searchResult = _countryList
             .where(
-              (c) => _countryMatchesQuery(
-                  c, lowerQuery, localizations, countryCodes, allowPartialNameSearch),
+              (c) =>
+                  _countryMatchesQuery(c, lowerQuery, localizations,
+                      countryCodes, allowPartialNameSearch) ||
+                  (widget.matchPhoneCode && _phoneCodeMatchesQuery(c, query)),
             )
             .toList();
     }
 
     setState(() => _filteredList = _searchResult);
+  }
+
+  static final RegExp _phoneCodeQuery = RegExp(r'^\+?(\d+)$');
+
+  bool _phoneCodeMatchesQuery(Country country, String query) {
+    final digits = _phoneCodeQuery.firstMatch(query.trim())?.group(1);
+    return digits != null && country.phoneCode.startsWith(digits);
   }
 
   bool _countryMatchesQuery(

@@ -10,7 +10,12 @@ import 'src/country_list_view.dart';
 
 export 'src/country.dart';
 export 'src/country_list_theme_data.dart';
-export 'src/country_list_view.dart' show CustomFlagBuilder;
+export 'src/country_list_view.dart'
+    show
+        CountryItemBuilder,
+        CountryListView,
+        CountrySearchBuilder,
+        CustomFlagBuilder;
 export 'src/country_localizations.dart';
 export 'src/country_parser.dart';
 export 'src/country_service.dart';

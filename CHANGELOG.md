@@ -1,3 +1,7 @@
+## 2.1.0
+* Export `CountryListView` so an app can host the country list in its own sheet or page.
+* Add optional `CountryListView` builders: `searchBuilder`, `itemBuilder`, `emptyBuilder`, `separatorBuilder`, `listPadding` and `initialCountryCode` (scrolls to and marks the selected country). Without them the list renders as before.
+
 ## 2.0.27
 * Add support for Persian (FA) localization
 * Add support for Danish (DA) localization

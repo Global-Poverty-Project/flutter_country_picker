@@ -9,6 +9,29 @@ import 'utils.dart';
 
 typedef CustomFlagBuilder = Widget Function(Country country);
 
+/// Builds the search field in place of the default [TextField].
+///
+/// Bind [controller] to the field and call [onChanged] with every edit, so
+/// the list keeps the package's search (localized names, aliases,
+/// diacritics).
+typedef CountrySearchBuilder = Widget Function(
+  BuildContext context,
+  TextEditingController controller,
+  ValueChanged<String> onChanged,
+);
+
+/// Builds a country row in place of the default one.
+///
+/// [selected] is true for the row of [CountryListView.initialCountryCode].
+/// [onSelect] runs the default tap: it sets [Country.nameLocalized], calls
+/// [CountryListView.onSelect] and pops the route.
+typedef CountryItemBuilder = Widget Function(
+  BuildContext context,
+  Country country,
+  bool selected,
+  VoidCallback onSelect,
+);
+
 class CountryListView extends StatefulWidget {
   /// Called when a country is select.
   ///
@@ -51,6 +74,26 @@ class CountryListView extends StatefulWidget {
   /// An optional argument to allow partial name search
   final bool allowPartialNameSearch;
 
+  /// Builds the search field in place of the default one. It takes the place
+  /// of the default [TextField] only, so [showSearch] still hides it.
+  final CountrySearchBuilder? searchBuilder;
+
+  /// Builds each country row in place of the default one.
+  final CountryItemBuilder? itemBuilder;
+
+  /// Builds the widget shown in place of the list when no country matches.
+  final WidgetBuilder? emptyBuilder;
+
+  /// Builds the widget between two country rows. [index] is the row above it.
+  final IndexedWidgetBuilder? separatorBuilder;
+
+  /// The padding of the list.
+  final EdgeInsetsGeometry? listPadding;
+
+  /// The country code (iso2) the list opens on, centered, and that
+  /// [itemBuilder] receives as selected.
+  final String? initialCountryCode;
+
   const CountryListView({
     Key? key,
     required this.onSelect,
@@ -64,6 +107,12 @@ class CountryListView extends StatefulWidget {
     this.showSearch = true,
     this.allowPartialNameSearch = true,
     this.customFlagBuilder,
+    this.searchBuilder,
+    this.itemBuilder,
+    this.emptyBuilder,
+    this.separatorBuilder,
+    this.listPadding,
+    this.initialCountryCode,
   })  : assert(
           exclude == null || countryFilter == null,
           'Cannot provide both exclude and countryFilter',
@@ -83,6 +132,8 @@ class _CountryListViewState extends State<CountryListView> {
   late TextEditingController _searchController;
   late bool _searchAutofocus;
   bool _isSearching = false;
+  ScrollController? _scrollController;
+  final GlobalKey _initialRowKey = GlobalKey();
 
   @override
   void initState() {
@@ -123,12 +174,62 @@ class _CountryListViewState extends State<CountryListView> {
     _filteredList.addAll(_countryList);
 
     _searchAutofocus = widget.searchAutofocus;
+
+    if (widget.initialCountryCode != null) {
+      _scrollController = ScrollController();
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _scrollToInitialCountry());
+    }
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController?.dispose();
     super.dispose();
+  }
+
+  /// The list builds its rows lazily, so a row far down does not exist yet:
+  /// jump to its estimated offset first, then center it once it is built.
+  void _scrollToInitialCountry([int attempt = 0]) {
+    final controller = _scrollController;
+    if (!mounted || controller == null || !controller.hasClients) return;
+
+    final rowContext = _initialRowKey.currentContext;
+    if (rowContext != null) {
+      Scrollable.ensureVisible(rowContext, alignment: 0.5);
+      return;
+    }
+
+    final index = _filteredList
+        .indexWhere((c) => c.countryCode == widget.initialCountryCode);
+    if (index < 0 || attempt >= 3) return;
+
+    final position = controller.position;
+    final rowCount = _filteredList.length + (_favoriteList?.length ?? 0);
+    final contentExtent = position.maxScrollExtent + position.viewportDimension;
+    final rowIndex = index + (_favoriteList?.length ?? 0);
+    controller.jumpTo(
+      (contentExtent * rowIndex / rowCount).clamp(
+        position.minScrollExtent,
+        position.maxScrollExtent,
+      ),
+    );
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _scrollToInitialCountry(attempt + 1));
+  }
+
+  void _onSearchChanged(String value) {
+    _filterSearchResults(value, widget.allowPartialNameSearch);
+    _checkSearchText(value);
+  }
+
+  void _selectCountry(Country country) {
+    country.nameLocalized = CountryLocalizations.of(context)
+        ?.countryName(countryCode: country.countryCode)
+        ?.replaceAll(RegExp(r"\s+"), " ");
+    widget.onSelect(country);
+    Navigator.pop(context);
   }
 
   void _checkSearchText(String searchText) {
@@ -152,7 +253,9 @@ class _CountryListViewState extends State<CountryListView> {
     return Column(
       children: <Widget>[
         const SizedBox(height: 12),
-        if (widget.showSearch)
+        if (widget.showSearch && widget.searchBuilder != null)
+          widget.searchBuilder!(context, _searchController, _onSearchChanged)
+        else if (widget.showSearch)
           TextField(
             autofocus: _searchAutofocus,
             controller: _searchController,
@@ -169,27 +272,56 @@ class _CountryListViewState extends State<CountryListView> {
                     ),
                   ),
                 ),
-            onChanged: (value) {
-              _filterSearchResults(value, widget.allowPartialNameSearch);
-              _checkSearchText(value);
-            },
+            onChanged: _onSearchChanged,
           ),
         Expanded(
-          child: ListView(
-            children: [
-              if (_favoriteList != null && !_isSearching) ...[
-                ..._favoriteList!.map<Widget>((currency) => _listRow(currency)),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Divider(thickness: 1),
+          child: widget.emptyBuilder != null && _showsNoCountry
+              ? widget.emptyBuilder!(context)
+              : ListView(
+                  controller: _scrollController,
+                  padding: widget.listPadding,
+                  children: [
+                    if (_favoriteList != null && !_isSearching) ...[
+                      ..._rows(_favoriteList!),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Divider(thickness: 1),
+                      ),
+                    ],
+                    ..._rows(_filteredList, keyInitialCountry: true),
+                  ],
                 ),
-              ],
-              ..._filteredList.map<Widget>((country) => _listRow(country)),
-            ],
-          ),
         ),
       ],
     );
+  }
+
+  bool get _showsNoCountry =>
+      _filteredList.isEmpty && (_favoriteList == null || _isSearching);
+
+  Iterable<Widget> _rows(
+    List<Country> countries, {
+    bool keyInitialCountry = false,
+  }) sync* {
+    final separatorBuilder = widget.separatorBuilder;
+    for (var i = 0; i < countries.length; i++) {
+      if (separatorBuilder != null && i > 0) {
+        yield separatorBuilder(context, i - 1);
+      }
+      final country = countries[i];
+      final row = widget.itemBuilder == null
+          ? _listRow(country)
+          : widget.itemBuilder!(
+              context,
+              country,
+              country.countryCode == widget.initialCountryCode,
+              () => _selectCountry(country),
+            );
+      yield keyInitialCountry &&
+              country.countryCode == widget.initialCountryCode
+          ? KeyedSubtree(key: _initialRowKey, child: row)
+          : row;
+    }
   }
 
   Widget _listRow(Country country) {
@@ -203,13 +335,7 @@ class _CountryListViewState extends State<CountryListView> {
       // so the ripple effect of InkWell will show on tap
       color: Colors.transparent,
       child: InkWell(
-        onTap: () {
-          country.nameLocalized = CountryLocalizations.of(context)
-              ?.countryName(countryCode: country.countryCode)
-              ?.replaceAll(RegExp(r"\s+"), " ");
-          widget.onSelect(country);
-          Navigator.pop(context);
-        },
+        onTap: () => _selectCountry(country),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 5.0),
           child: Row(

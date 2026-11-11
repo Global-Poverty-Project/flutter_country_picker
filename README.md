@@ -101,5 +101,45 @@ MaterialApp(
   - Can't provide both exclude and countryFilter
 
 
+### Custom builders
+`CountryListView` is exported, so an app can host the list in its own bottom sheet or page and draw it with its own widgets, while the package keeps the search (localized names, aliases, diacritics), favorites and filtering. Every builder is optional; without them the list renders as in `showCountryPicker`.
+
+* `searchBuilder`: builds the search field. Bind the given `controller` and call `onChanged` on every edit.
+* `itemBuilder`: builds a row. `selected` is true for `initialCountryCode`; `onSelect` runs the default tap (calls `onSelect` and pops the route).
+* `emptyBuilder`: shown in place of the list when no country matches.
+* `separatorBuilder`: the widget between two rows.
+* `listPadding`: the padding of the list.
+* `initialCountryCode`: the country (iso2) the list opens on, centered.
+
+`matchPhoneCode` (on `CountryListView` and `showCountryPicker`, default `false`) makes a search of digits, with or without a leading "+", also find the countries whose phone code starts with them: "44" or "+44" finds the United Kingdom.
+
+```Dart
+showModalBottomSheet(
+  context: context,
+  isScrollControlled: true,
+  builder: (context) => SizedBox(
+    height: 600,
+    child: CountryListView(
+      onSelect: (country) => print(country.name),
+      initialCountryCode: 'GB',
+      matchPhoneCode: true,
+      searchBuilder: (context, controller, onChanged) => TextField(
+        controller: controller,
+        onChanged: onChanged,
+        decoration: const InputDecoration(hintText: 'Search'),
+      ),
+      itemBuilder: (context, country, selected, onSelect) => ListTile(
+        leading: Text(country.flagEmoji),
+        title: Text(country.name),
+        trailing: selected ? const Icon(Icons.check) : null,
+        onTap: onSelect,
+      ),
+      separatorBuilder: (context, index) => const Divider(height: 1),
+      emptyBuilder: (context) => const Center(child: Text('No results')),
+    ),
+  ),
+);
+```
+
 ## Contributions
 Contributions of any kind are more than welcome! Feel free to fork and improve country_code_picker in any way you want, make a pull request, or open an issue.

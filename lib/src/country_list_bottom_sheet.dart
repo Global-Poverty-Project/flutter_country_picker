@@ -23,6 +23,7 @@ void showCountryListBottomSheet({
   Widget header = const SizedBox.shrink(),
   bool allowPartialNameSearch = true,
   String? barrierLabel,
+  bool matchPhoneCode = false,
 }) {
   showModalBottomSheet(
     context: context,
@@ -46,6 +47,7 @@ void showCountryListBottomSheet({
       customFlagBuilder,
       header,
       allowPartialNameSearch,
+      matchPhoneCode,
     ),
   ).whenComplete(() {
     if (onClosed != null) onClosed();
@@ -67,6 +69,7 @@ Widget _builder(
   CustomFlagBuilder? customFlagBuilder,
   Widget header,
   bool allowPartialNameSearch,
+  bool matchPhoneCode,
 ) {
   final device = MediaQuery.of(context).size.height;
   final statusBarHeight = MediaQuery.of(context).padding.top;
@@ -122,6 +125,7 @@ Widget _builder(
                 showSearch: showSearch,
                 customFlagBuilder: customFlagBuilder,
                 allowPartialNameSearch: allowPartialNameSearch,
+                matchPhoneCode: matchPhoneCode,
               ),
             ),
           ],
